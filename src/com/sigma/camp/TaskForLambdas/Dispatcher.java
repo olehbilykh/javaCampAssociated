@@ -1,85 +1,76 @@
 package com.sigma.camp.TaskForLambdas;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class Dispatcher {
-    public static Map<String, List<Integer>> groupBy(int[] array, Function<Integer, String> groupFn) {
-        Map<String, List<Integer>> result = new HashMap<>();
-
-        for(Integer val : array){
-            result.computeIfAbsent(groupFn.apply(val),  key -> new LinkedList<>()).add(val);
-        }
-
-        return result;
-    }
-    public static <T> List<T> joinFiltering(int[] array1, int[] array2) {
-        double avg1 = average(array1);
-        double avg2 = average(array2);
-        double min = Math.min(avg1, avg2);
-        double max = Math.max(avg1, avg2);
-        Predicate<Integer> filterFn = val -> val >= min && val <= max;
-        List<Integer> result = new LinkedList<>();
-        fill(result, array1, filterFn);
-        fill(result, array2, filterFn);
-        return (List<T>) result;
-    }
-
-    private static double average(int[] array) {
-        double sum = 0;
-        for (int val : array) {
-            sum += val;
-        }
-        return sum / array.length;
-    }
-
-    private static void fill(List<Integer> list, int[] array, Predicate<Integer> filter) {
-        for (int val : array) {
-            if (filter.test(val)) {
-                list.add(val);
-            }
-        }
-    }
-
     public static void main(String[] args) {
-        int[] array = new int[]{-1, 3, 2, 4, -6, 8};
-        Function<Integer, String> fn1 = val -> val > 0 ? "positive" : "negative";
-        Map<String, List<Integer>> task1 = groupBy(array, fn1);
+        Integer[] array1 = {25, -6, 7, 23, -149, -11, 25, 5, -8, -21, 6, -2};
+        Integer[] array2 = {-3, -5, 7, 18, -23, 164, -22, 2, -29, -16, 13};
 
-        Function<Integer, String> fn2 = val -> val % 2 == 0? "even" : "odd";
-        Map<String, List<Integer>> task2 = groupBy(array, fn2);
+        Predicate<Integer> isNegative = x -> x < 0;
+        Predicate<Integer> isEven = x -> x % 2 == 0;
 
-        System.out.println(task1);
-        System.out.println(task2);
+        System.out.println("Negative/Positive numbers : " +
+                Handler.filterArrayByPredicate.apply(array1, isNegative));
+        System.out.println("Even/Odd numbers : " +
+                Handler.filterArrayByPredicate.apply(array2, isEven));
 
+        System.out.println("Elements between arithmetic means: " +
+                Handler.elementsBetweenArithmeticMeans.
+                        apply(new ArrayList<>(Arrays.asList(array1, array2))));
     }
-
 }
 
-class Car {
-    private int maxSpeed;
+class Handler {
+    public static BiFunction<Integer[], Predicate<Integer>, ArrayList<ArrayList<Integer>>> filterArrayByPredicate = (
+            arr, predicate) -> {
+        ArrayList<ArrayList<Integer>> result = new ArrayList<>();
+        ArrayList<Integer> listYes = new ArrayList<>();
+        ArrayList<Integer> listNo = new ArrayList<>();
+        for (Integer elem : arr) {
+            if (predicate.test(elem)) {
+                listYes.add(elem);
+            } else {
+                listNo.add(elem);
+            }
+        }
+        result.add(listYes);
+        result.add(listNo);
+        return result;
+    };
+    public static Function<Integer[], Double> arithmeticMean = arr -> {
+        int res = 0;
+        for (Integer elem : arr) {
+            res += elem;
+        }
+        return (double) res / arr.length;
+    };
+    public static BiFunction<Integer[], Double[], ArrayList<Integer>> filter = (list, array) -> {
+        ArrayList<Integer> result = new ArrayList<>();
+        for (Integer elem : list) {
+            if (elem > array[0] && elem < array[1])
+                result.add(elem);
+        }
+        return result;
+    };
+    public static Function<ArrayList<Integer[]>, ArrayList<Integer>> elementsBetweenArithmeticMeans = (list) -> {
+        ArrayList<Integer> result = new ArrayList<>();
+        double arithmeticMean1 = arithmeticMean.apply(list.get(0));
+        double arithmeticMean2 = arithmeticMean.apply(list.get(1));
+        if (arithmeticMean1 > arithmeticMean2) {
+            double temp = arithmeticMean1;
+            arithmeticMean1 = arithmeticMean2;
+            arithmeticMean2 = temp;
+        }
+        Double[] means = {arithmeticMean1, arithmeticMean2};
+        System.out.println("Arithmetic mean 1: " + arithmeticMean1 + ",  Arithmetic mean 2: " + arithmeticMean2);
+        result.addAll(filter.apply(list.get(0), means));
+        result.addAll(filter.apply(list.get(1), means));
+        return result;
+    };
 
-    public Car(int maxSpeed) {
-        this.maxSpeed = maxSpeed;
-    }
-
-    public int getMaxSpeed() {
-        return maxSpeed;
-    }
-
-    public void setMaxSpeed(int maxSpeed) {
-        this.maxSpeed = maxSpeed;
-    }
-
-    public boolean isSlower(Car car) {
-        return maxSpeed < car.getMaxSpeed();
-    }
-
-    @Override
-    public String toString() {
-        return "Car{" +
-                "maxSpeed=" + maxSpeed +
-                '}';
-    }
 }
