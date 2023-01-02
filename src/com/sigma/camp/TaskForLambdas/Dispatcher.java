@@ -2,9 +2,12 @@ package com.sigma.camp.TaskForLambdas;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static com.sigma.camp.TaskForLambdas.Handler.divideCars;
 
 public class Dispatcher {
     public static void main(String[] args) {
@@ -14,20 +17,23 @@ public class Dispatcher {
         Predicate<Integer> isNegative = x -> x < 0;
         Predicate<Integer> isEven = x -> x % 2 == 0;
 
-        System.out.println("Negative/Positive numbers : " +
-                Handler.filterArrayByPredicate.apply(array1, isNegative));
-        System.out.println("Even/Odd numbers : " +
-                Handler.filterArrayByPredicate.apply(array2, isEven));
+        System.out.println("Negative/Positive numbers : " + Handler.filterArrayByPredicate.apply(array1, isNegative));
+        System.out.println("Even/Odd numbers : " + Handler.filterArrayByPredicate.apply(array2, isEven));
 
-        System.out.println("Elements between arithmetic means: " +
-                Handler.elementsBetweenArithmeticMeans.
-                        apply(new ArrayList<>(Arrays.asList(array1, array2))));
+        System.out.println("Elements between arithmetic means: " + Handler.elementsBetweenArithmeticMeans.apply(new ArrayList<>(Arrays.asList(array1, array2))));
+
+        List<Car> cars = new ArrayList<>();
+        cars.add(new Car(250, "Audi Q7"));
+        cars.add(new Car(300, "BMW M5 Competition"));
+        cars.add(new Car(450, "Bugatti Chiron"));
+        cars.add(new Car(410, "McLaren 720S"));
+
+        List<List<Car>> carsList = divideCars.apply(cars, 390);
     }
 }
 
 class Handler {
-    public static BiFunction<Integer[], Predicate<Integer>, ArrayList<ArrayList<Integer>>> filterArrayByPredicate = (
-            arr, predicate) -> {
+    public static BiFunction<Integer[], Predicate<Integer>, ArrayList<ArrayList<Integer>>> filterArrayByPredicate = (arr, predicate) -> {
         ArrayList<ArrayList<Integer>> result = new ArrayList<>();
         ArrayList<Integer> listYes = new ArrayList<>();
         ArrayList<Integer> listNo = new ArrayList<>();
@@ -52,8 +58,7 @@ class Handler {
     public static BiFunction<Integer[], Double[], ArrayList<Integer>> filter = (list, array) -> {
         ArrayList<Integer> result = new ArrayList<>();
         for (Integer elem : list) {
-            if (elem > array[0] && elem < array[1])
-                result.add(elem);
+            if (elem > array[0] && elem < array[1]) result.add(elem);
         }
         return result;
     };
@@ -73,4 +78,52 @@ class Handler {
         return result;
     };
 
+    public static BiFunction<List<Car>, Integer, List<List<Car>>> divideCars = (list, value) -> {
+        List<List<Car>> lists = new ArrayList<>();
+        lists.add(new ArrayList<>());
+        lists.add(new ArrayList<>());
+
+        for (Car item : list) {
+            if (item.getMaxSpeed() < value)
+                lists.get(0).add(item);
+            else
+                lists.get(1).add(item);
+        }
+        return lists;
+    };
+
+}
+
+class Car {
+    private int maxSpeed;
+    private String brand;
+
+    public Car(int maxSpeed, String brand) {
+        this.maxSpeed = maxSpeed;
+        this.brand = brand;
+    }
+
+    public int getMaxSpeed() {
+        return maxSpeed;
+    }
+
+    public void setMaxSpeed(int maxSpeed) {
+        this.maxSpeed = maxSpeed;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    @Override
+    public String toString() {
+        return "Car{" +
+                "maxSpeed=" + maxSpeed +
+                ", brand='" + brand + '\'' +
+                '}';
+    }
 }
