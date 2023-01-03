@@ -21,7 +21,7 @@ public class Dispatcher {
                 String tmp;
                 while ((tmp = bf.readLine()) != null) {
                     strings = tmp.split(" ");
-                    Drink drink = new Drink(Integer.parseInt(strings[0]), strings[1], Double.parseDouble(strings[2]), strings[3]);
+                    Drink drink = new Drink(strings[1], Double.parseDouble(strings[2]), strings[3]);
 
                     if (drink.getVolume() < 0.51) {
                         lessThan05.add(drink);
@@ -108,13 +108,11 @@ public class Dispatcher {
 }
 
 class Drink implements Comparable<Drink> {
-    private int id;
     private String type;
     private double volume;
     private String bottleMaterial;
 
-    public Drink(int id, String type, double volume, String bottleMaterial) {
-        this.id = id;
+    public Drink(String type, double volume, String bottleMaterial) {
         this.type = type;
         this.volume = volume;
         this.bottleMaterial = bottleMaterial;
@@ -131,14 +129,6 @@ class Drink implements Comparable<Drink> {
         }
 
         return result;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getType() {
@@ -167,6 +157,6 @@ class Drink implements Comparable<Drink> {
 
     @Override
     public String toString() {
-        return id + " " + type + " " + volume + " " + bottleMaterial;
+        return type + " " + volume + " " + bottleMaterial;
     }
 }
