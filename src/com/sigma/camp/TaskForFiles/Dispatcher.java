@@ -6,12 +6,10 @@ import java.util.List;
 import java.util.Objects;
 
 public class Dispatcher {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         final File filesInFolder = new File("src/com/sigma/camp/TaskForFiles/InputFiles");
         List<File> files = listFilesForFolder(filesInFolder);
-        String tmp;
         String[] strings;
-        PrintWriter pw;
 
         List<Drink> lessThan05 = new LinkedList<>();
         List<Drink> moreThan05lessThan1 = new LinkedList<>();
@@ -20,11 +18,10 @@ public class Dispatcher {
 
         for (int i = 0; i < files.size(); i++) {
             try (BufferedReader bf = new BufferedReader(new FileReader(listFilesForFolder(filesInFolder).get(i)))) {
-
+                String tmp;
                 while ((tmp = bf.readLine()) != null) {
                     strings = tmp.split(" ");
                     Drink drink = new Drink(Integer.parseInt(strings[0]), strings[1], Double.parseDouble(strings[2]), strings[3]);
-
 
                     if (drink.getVolume() < 0.51) {
                         lessThan05.add(drink);
@@ -33,43 +30,51 @@ public class Dispatcher {
                     } else {
                         moreThan1.add(drink);
                     }
-
                 }
             } catch (IOException | NumberFormatException e) {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
-
         }
+
         Dispatcher.sort(lessThan05, args[0]);
-        pw = new PrintWriter(new FileWriter("src/com/sigma/camp/TaskForFiles/OutputFiles/lessThan05"));
-        for (Drink drink : lessThan05) {
-            pw.println(drink);
-        }
-        pw.flush();
-        pw.close();
-
+        Dispatcher.writeToFile(lessThan05, "src/com/sigma/camp/TaskForFiles/OutputFiles/lessThan05");
         Dispatcher.sort(moreThan05lessThan1, args[1]);
-        pw = new PrintWriter(new FileWriter("src/com/sigma/camp/TaskForFiles/OutputFiles/moreThan05lessThan1"));
-        for (Drink drink : moreThan05lessThan1) {
-            pw.println(drink);
-        }
-        pw.flush();
-        pw.close();
-
-
+        Dispatcher.writeToFile(moreThan05lessThan1, "src/com/sigma/camp/TaskForFiles/OutputFiles/moreThan05lessThan1");
         Dispatcher.sort(moreThan1, args[2]);
-        pw = new PrintWriter(new FileWriter("src/com/sigma/camp/TaskForFiles/OutputFiles/moreThan1"));
-        for (Drink drink : moreThan1) {
-            pw.println(drink);
-        }
-        pw.flush();
-        pw.close();
-
+        Dispatcher.writeToFile(moreThan1, "src/com/sigma/camp/TaskForFiles/OutputFiles/moreThan1");
 
         System.out.println("< 0.5 " + lessThan05);
         System.out.println("> 0.5 && 1 < " + moreThan05lessThan1);
         System.out.println("> 1 " + moreThan1);
 
+    }
+
+    public static List<File> listFilesForFolder(final File folder) {
+        List<File> fileEntries = new LinkedList<>();
+        try {
+            for (final File fileEntry : Objects.requireNonNull(folder.listFiles())) {
+                if (fileEntry.isDirectory()) {
+                    listFilesForFolder(fileEntry);
+                } else {
+                    fileEntries.add(fileEntry);
+                }
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
+        return fileEntries;
+    }
+
+    public static void writeToFile(List<Drink> drinks, String filename) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(filename))) {
+            for (Drink drink : drinks) {
+                pw.println(drink);
+            }
+            pw.flush();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public static void sort(List<Drink> drinks, String input) {
@@ -100,17 +105,6 @@ public class Dispatcher {
         }
     }
 
-    public static List<File> listFilesForFolder(final File folder) {
-        List<File> fileEntries = new LinkedList<>();
-        for (final File fileEntry : Objects.requireNonNull(folder.listFiles())) {
-            if (fileEntry.isDirectory()) {
-                listFilesForFolder(fileEntry);
-            } else {
-                fileEntries.add(fileEntry);
-            }
-        }
-        return fileEntries;
-    }
 }
 
 class Drink implements Comparable<Drink> {
