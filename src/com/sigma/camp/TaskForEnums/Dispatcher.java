@@ -16,10 +16,13 @@ public class Dispatcher {
                 new Fest("drum'n'bass", "Donetsk", SEPTEMBER)
 
         ));
-        Dispatcher.sort(fests, "month");
+        Controller.sort(fests, "month");
         System.out.println(fests);
     }
 
+}
+
+class Controller {
     public static void sort(List<Fest> fests, String input) {
         switch (input) {
             case "city" -> fests.sort(Comparator.comparing(Fest::getCity));
