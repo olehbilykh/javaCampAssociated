@@ -23,13 +23,14 @@ public class Dispatcher {
                     strings = tmp.split(" ");
                     Drink drink = new Drink(strings[1], Double.parseDouble(strings[2]), strings[3]);
 
-                    if (drink.getVolume() < 0.51) {
-                        lessThan05.add(drink);
-                    } else if (drink.getVolume() > 0.5 && drink.getVolume() < 1) {
+                    if (drink.getVolume() > 0.5 && drink.getVolume() < 1) {
                         moreThan05lessThan1.add(drink);
                     } else {
-                        moreThan1.add(drink);
+                        if (drink.getVolume() < 0.51)
+                            lessThan05.add(drink);
+                        else moreThan1.add(drink);
                     }
+
                 }
             } catch (IOException | NumberFormatException e) {
                 e.printStackTrace();
