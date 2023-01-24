@@ -5,6 +5,10 @@ import java.util.List;
 
 import static com.sigma.camp.TaskForEnums.YearMonth.*;
 
+enum YearMonth {
+    JANUARY, FEBRUARY, MARCH, APRIL, MAY, JUNE, JULY, AUGUST, SEPTEMBER, OCTOBER, NOVEMBER, DECEMBER
+}
+
 public class Dispatcher {
     public static void main(String[] args) {
         List<Fest> fests = new java.util.LinkedList<>(List.of(
@@ -19,9 +23,7 @@ public class Dispatcher {
         Controller.sort(fests, "month");
         System.out.println(fests);
     }
-
 }
-
 class Controller {
     public static void sort(List<Fest> fests, String input) {
         switch (input) {
@@ -80,8 +82,4 @@ class Fest implements Comparable<Fest> {
                 ", month=" + month +
                 '}';
     }
-}
-
-enum YearMonth {
-    JANUARY, FEBRUARY, MARCH, APRIL, MAY, JUNE, JULY, AUGUST, SEPTEMBER, OCTOBER, NOVEMBER, DECEMBER
 }

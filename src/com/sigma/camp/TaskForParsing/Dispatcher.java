@@ -1,5 +1,7 @@
 package com.sigma.camp.TaskForParsing;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,26 +15,24 @@ import java.util.regex.Pattern;
  * текстового файлу безпосередньо після опрацювання без утворення буферних
  * колекцій або без перетворення всього файлу у текст.
  */
-
 public class Dispatcher {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Pattern p;
         Matcher m;
-        String[] strings;
         String fileContent;
 
-        try {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("src/com/sigma/camp/TaskForParsing/output"))) {
             fileContent = Files.readString(Path.of("src/com/sigma/camp/TaskForParsing/input"));
-            System.out.println(fileContent);
-//            p = Pattern.compile("\\w+");
-            p = Pattern.compile("[^aeiou].+?[.,!? ]");
-
+            p = Pattern.compile("(?i)\\b[a-z&&[^aeiuo]][a-z]*+\\b");
             m = p.matcher(fileContent);
-            while (m.find()){
-                System.out.println(m.group());
+
+            while (m.find()) {
+                bufferedWriter.write(m.group() + " ");
             }
+
+
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println(e.getMessage());
         }
     }
 }
