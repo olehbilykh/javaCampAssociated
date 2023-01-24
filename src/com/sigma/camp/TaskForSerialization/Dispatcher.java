@@ -13,7 +13,7 @@ public class Dispatcher {
                 new Plane(new Engine("benzine", 23000), 1991, 1500, "Passenger", 1000, new Chassis(new Wheel(1.7, 70), 8))
         ));
         planes.sort(Comparator.comparing(Vehicle::getYearOfProduction));
-        System.out.println("1 " + planes);
+        System.out.println("Before " + planes);
 
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("src/com/sigma/camp/TaskForSerialization/planes"))) {
             out.writeObject(planes);
@@ -22,14 +22,36 @@ public class Dispatcher {
             System.out.println(e.getMessage());
         }
 
-        List<Plane> planesDeserealized;
+        List<Plane> planesDeserealized = null;
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("src/com/sigma/camp/TaskForSerialization/planes"))) {
             planesDeserealized = (List<Plane>) in.readObject();
-            System.out.println("2 " + planesDeserealized);
         } catch (IOException | ClassNotFoundException e) {
             System.out.println(e.getMessage());
         }
+        System.out.println("After " + planesDeserealized);
 
+
+        List<Ship> ships = new ArrayList<>(List.of(
+                new Ship(new Engine("uranium", 121312), 2022, 100, 500, 200, new Bumboat(3, "wood")),
+                new Ship(new Engine("diesel", 121123), 2012, 500, 50, 100, new Bumboat(13, "plastic")),
+                new Ship(new Engine("kerosene", 13123), 1999, 60, 300, 400, new Bumboat(33, "metal"))
+        ));
+        ships.sort(Comparator.comparing(Vehicle::getYearOfProduction));
+        System.out.println("Before " + ships);
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("src/com/sigma/camp/TaskForSerialization/ships"))) {
+            out.writeObject(ships);
+            out.flush();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
+        List<Ship> shipsDeserealized = null;
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("src/com/sigma/camp/TaskForSerialization/ships"))) {
+            shipsDeserealized = (List<Ship>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+        System.out.println("After " + shipsDeserealized);
     }
 }
 
@@ -155,14 +177,70 @@ class Ship extends Vehicle implements Externalizable {
     private double length;
     private Bumboat bumboat;
 
+    public Ship() {
+    }
+
+    public Ship(double waterTonnage, double length, Bumboat bumboat) {
+        this.waterTonnage = waterTonnage;
+        this.length = length;
+        this.bumboat = bumboat;
+    }
+
+    public Ship(Engine engine, int yearOfProduction, double speed, double waterTonnage, double length, Bumboat bumboat) {
+        super(engine, yearOfProduction, speed);
+        this.waterTonnage = waterTonnage;
+        this.length = length;
+        this.bumboat = bumboat;
+    }
+
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-
+        out.writeDouble(waterTonnage);
+        out.writeDouble(length);
+        out.writeInt(bumboat.getNumberOfPassengers());
+        out.writeUTF(bumboat.getMaterial());
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        this.waterTonnage = in.readDouble();
+        this.length = in.readDouble();
+        int numberOfPassengers = in.readInt();
+        String material = in.readUTF();
+        this.bumboat = new Bumboat(numberOfPassengers, material);
+    }
 
+    public double getWaterTonnage() {
+        return waterTonnage;
+    }
+
+    public void setWaterTonnage(double waterTonnage) {
+        this.waterTonnage = waterTonnage;
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public void setLength(double length) {
+        this.length = length;
+    }
+
+    public Bumboat getBumboat() {
+        return bumboat;
+    }
+
+    public void setBumboat(Bumboat bumboat) {
+        this.bumboat = bumboat;
+    }
+
+    @Override
+    public String toString() {
+        return "Ship{" +
+                "waterTonnage=" + waterTonnage +
+                ", length=" + length +
+                ", bumboat=" + bumboat +
+                '}';
     }
 }
 
@@ -230,15 +308,6 @@ class Chassis {
     public void setNumberOfWheels(int numberOfWheels) {
         this.numberOfWheels = numberOfWheels;
     }
-//    private void writeObject(ObjectOutputStream out){
-//        try {
-//            out.defaultWriteObject();
-//            out.writeDouble(wheel.getDiameter());
-//            out.writeDouble(wheel.getLoad());
-//        } catch (IOException e) {
-//            System.out.println("Exception when trying to serialize: " + e.getMessage());
-//        }
-//    }
 
     @Override
     public String toString() {
@@ -252,6 +321,38 @@ class Chassis {
 class Bumboat {
     private int numberOfPassengers;
     private String material;
+
+    public Bumboat() {
+    }
+
+    public Bumboat(int numberOfPassengers, String material) {
+        this.numberOfPassengers = numberOfPassengers;
+        this.material = material;
+    }
+
+    public int getNumberOfPassengers() {
+        return numberOfPassengers;
+    }
+
+    public void setNumberOfPassengers(int numberOfPassengers) {
+        this.numberOfPassengers = numberOfPassengers;
+    }
+
+    public String getMaterial() {
+        return material;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
+    }
+
+    @Override
+    public String toString() {
+        return "Bumboat{" +
+                "numberOfPassengers=" + numberOfPassengers +
+                ", material='" + material + '\'' +
+                '}';
+    }
 }
 
 class Wheel {
