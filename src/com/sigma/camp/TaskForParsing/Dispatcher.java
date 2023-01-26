@@ -17,22 +17,7 @@ import java.util.regex.Pattern;
  */
 public class Dispatcher {
     public static void main(String[] args) throws IOException {
-        Pattern p;
-        Matcher m;
-        String fileContent;
-
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("src/com/sigma/camp/TaskForParsing/output"))) {
-            fileContent = Files.readString(Path.of("src/com/sigma/camp/TaskForParsing/input"));
-            p = Pattern.compile("(?i)\\b[a-z&&[^aeiuo]][a-z]*+\\b");
-            m = p.matcher(fileContent);
-
-            while (m.find()) {
-                bufferedWriter.write(m.group() + " ");
-            }
 
 
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
     }
 }

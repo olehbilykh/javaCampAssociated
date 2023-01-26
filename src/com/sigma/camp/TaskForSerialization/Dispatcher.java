@@ -105,6 +105,8 @@ class Vehicle {
 }
 
 class Plane extends Vehicle implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private String model;
     private double maxFlightLength;
     private transient Chassis chassis;
@@ -188,7 +190,8 @@ class Plane extends Vehicle implements Serializable {
 }
 
 class Ship extends Vehicle implements Externalizable {
-
+    @Serial
+    private static final long serialVersionUID = 1L;
     private double waterTonnage;
     private double length;
     private Bumboat bumboat;
