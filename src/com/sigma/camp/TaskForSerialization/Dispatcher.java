@@ -15,7 +15,7 @@ public class Dispatcher {
         planes.sort(Comparator.comparing(Vehicle::getYearOfProduction));
         System.out.println("Before " + planes);
 
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("src/com/sigma/camp/TaskForSerialization/planes"))) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("src/com/sigma/camp/TaskForSerialization/planes.ser"))) {
             out.writeObject(planes);
             out.flush();
         } catch (IOException e) {
@@ -23,7 +23,7 @@ public class Dispatcher {
         }
 
         List<Plane> planesDeserealized = null;
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("src/com/sigma/camp/TaskForSerialization/planes"))) {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("src/com/sigma/camp/TaskForSerialization/planes.ser"))) {
             planesDeserealized = (List<Plane>) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             System.out.println(e.getMessage());
@@ -38,7 +38,7 @@ public class Dispatcher {
         ));
         ships.sort(Comparator.comparing(Vehicle::getYearOfProduction));
         System.out.println("Before " + ships);
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("src/com/sigma/camp/TaskForSerialization/ships"))) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("src/com/sigma/camp/TaskForSerialization/ships.ser"))) {
             out.writeObject(ships);
             out.flush();
         } catch (IOException e) {
@@ -46,10 +46,11 @@ public class Dispatcher {
         }
 
         List<Ship> shipsDeserealized = null;
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("src/com/sigma/camp/TaskForSerialization/ships"))) {
-            shipsDeserealized = (List<Ship>) in.readObject();
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("src/com/sigma/camp/TaskForSerialization/ships.ser"))) {
+            shipsDeserealized = (List<Ship>)in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         System.out.println("After " + shipsDeserealized);
     }
@@ -92,6 +93,15 @@ class Vehicle {
     public void setSpeed(double speed) {
         this.speed = speed;
     }
+
+    @Override
+    public String toString() {
+        return "Vehicle{" +
+                "engine=" + engine +
+                ", yearOfProduction=" + yearOfProduction +
+                ", speed=" + speed +
+                '}';
+    }
 }
 
 class Plane extends Vehicle implements Serializable {
@@ -99,10 +109,7 @@ class Plane extends Vehicle implements Serializable {
     private double maxFlightLength;
     private transient Chassis chassis;
 
-    public Plane(String model, double maxFlightLength, Chassis chassis) {
-        this.model = model;
-        this.maxFlightLength = maxFlightLength;
-        this.chassis = chassis;
+    public Plane() {
     }
 
     public Plane(Engine engine, int yearOfProduction, double speed, String model, double maxFlightLength, Chassis chassis) {
@@ -136,26 +143,34 @@ class Plane extends Vehicle implements Serializable {
         this.chassis = chassis;
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream out) {
 
         try {
-            out.defaultWriteObject();
-            out.writeInt(chassis.getNumberOfWheels());
-            out.writeDouble(chassis.getWheel().getDiameter());
+            out.writeDouble(getSpeed());
+            out.writeInt(getYearOfProduction());
+            out.writeObject(getEngine().getType());
+            out.writeDouble(getEngine().getPower());
+
             out.writeDouble(chassis.getWheel().getLoad());
+            out.writeDouble(chassis.getWheel().getDiameter());
+            out.writeInt(chassis.getNumberOfWheels());
+
+            out.defaultWriteObject();
         } catch (IOException e) {
             System.out.println("Exception when trying to serialize: " + e.getMessage());
         }
 
     }
 
+    @Serial
     private void readObject(ObjectInputStream in) {
         try {
+            this.setSpeed(in.readDouble());
+            this.setYearOfProduction(in.readInt());
+            this.setEngine(new Engine((String) in.readObject(), in.readDouble()));
+            this.chassis = new Chassis(new Wheel(in.readDouble(), in.readDouble()), in.readInt());
             in.defaultReadObject();
-            int numberOfWheels = in.readInt();
-            double wheelDiameter = in.readDouble();
-            double wheelLoad = in.readDouble();
-            this.chassis = new Chassis(new Wheel(wheelDiameter, wheelLoad), numberOfWheels);
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Exception when trying to deserialize: " + e.getMessage());
         }
@@ -163,11 +178,12 @@ class Plane extends Vehicle implements Serializable {
 
     @Override
     public String toString() {
-        return "Plane{" +
+        return "\nPlane{" +
+                "speed=" + getSpeed() + ", " + getEngine() + ", " +
+                "productionYear=" + getYearOfProduction() + ", " +
                 "model='" + model + '\'' +
-                ", maxFlightLength=" + maxFlightLength +
-                ", chassis=" + chassis +
-                '}';
+                ", maxFlightLength=" + maxFlightLength + ", " +
+                chassis + '}';
     }
 }
 
@@ -179,13 +195,6 @@ class Ship extends Vehicle implements Externalizable {
 
     public Ship() {
     }
-
-    public Ship(double waterTonnage, double length, Bumboat bumboat) {
-        this.waterTonnage = waterTonnage;
-        this.length = length;
-        this.bumboat = bumboat;
-    }
-
     public Ship(Engine engine, int yearOfProduction, double speed, double waterTonnage, double length, Bumboat bumboat) {
         super(engine, yearOfProduction, speed);
         this.waterTonnage = waterTonnage;
@@ -195,19 +204,27 @@ class Ship extends Vehicle implements Externalizable {
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
+
         out.writeDouble(waterTonnage);
         out.writeDouble(length);
         out.writeInt(bumboat.getNumberOfPassengers());
         out.writeUTF(bumboat.getMaterial());
+
+        out.writeDouble(getSpeed());
+        out.writeInt(getYearOfProduction());
+        out.writeUTF(getEngine().getType());
+        out.writeDouble(getEngine().getPower());
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    public void readExternal(ObjectInput in) throws IOException {
         this.waterTonnage = in.readDouble();
         this.length = in.readDouble();
-        int numberOfPassengers = in.readInt();
-        String material = in.readUTF();
-        this.bumboat = new Bumboat(numberOfPassengers, material);
+        this.bumboat = new Bumboat(in.readInt(), in.readUTF());
+
+        this.setSpeed(in.readDouble());
+        this.setYearOfProduction(in.readInt());
+        this.setEngine(new Engine(in.readUTF(), in.readDouble()));
     }
 
     public double getWaterTonnage() {
@@ -236,20 +253,18 @@ class Ship extends Vehicle implements Externalizable {
 
     @Override
     public String toString() {
-        return "Ship{" +
+        return "\nShip{" +
+                "speed=" + getSpeed() + ", " + getEngine() + ", " +
+                "productionYear=" + getYearOfProduction() + ", " +
                 "waterTonnage=" + waterTonnage +
                 ", length=" + length +
-                ", bumboat=" + bumboat +
-                '}';
+                ", " + bumboat + '}';
     }
 }
 
 class Engine {
     private String type;
     private double power;
-
-    public Engine() {
-    }
 
     public Engine(String type, double power) {
         this.type = type;
@@ -282,7 +297,7 @@ class Engine {
 }
 
 class Chassis {
-    private transient Wheel wheel;
+    private Wheel wheel;
     private int numberOfWheels;
 
     public Chassis() {
@@ -321,9 +336,6 @@ class Chassis {
 class Bumboat {
     private int numberOfPassengers;
     private String material;
-
-    public Bumboat() {
-    }
 
     public Bumboat(int numberOfPassengers, String material) {
         this.numberOfPassengers = numberOfPassengers;
